@@ -1,6 +1,4 @@
 from django.db import models, transaction
-
-from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import (
     AbstractBaseUser, PermissionsMixin, BaseUserManager
@@ -57,3 +55,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         super(User, self).save(*args, **kwargs)
         return self
+
+
+# class RefreshToken(models.Model):
+#     email = models.EmailField(max_length=40)
+#     password = models.CharField(max_length=128)
+
+class Token(models.Model):
+    token = models.fields.SlugField()

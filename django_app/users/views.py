@@ -1,35 +1,39 @@
 import jwt
 from django.conf import settings
 from django.contrib.auth import user_logged_in
-from django.shortcuts import render
+from drf_yasg import openapi
 from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_jwt.serializers import jwt_payload_handler
+from drf_yasg.utils import swagger_auto_schema
 
 from .models import User
-from .serializers import UserSerializer
+from .serializers import UserSerializer, UserAuthBodySerializer, TokenSerializer
 
 
-class CreateUserAPIView(APIView):
+class CreateUserAPIView(CreateAPIView):
     # Allow any user (authenticated or not) to access this url
     permission_classes = (AllowAny,)
+    serializer_class = UserSerializer
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         user = request.data
-        serializer = UserSerializer(data=user)
+        serializer = self.serializer_class(data=user)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
-class RefreshToken(APIView):
+class RefreshToken(CreateAPIView):
     permission_classes = (AllowAny,)
+    serializer_class = UserAuthBodySerializer
 
-    def post(self, request):
+    @swagger_auto_schema(operation_description="Получение токена авторизации",
+                         responses={200: openapi.Response('Токен авторизации', TokenSerializer)})
+    def post(self, request, *args, **kwargs):
         try:
             email = request.data['email']
             password = request.data['password']
